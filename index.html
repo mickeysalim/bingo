@@ -33,7 +33,7 @@
   }
   header { text-align: center; margin-bottom: 8px; }
   .eyebrow {
-    font-size: 12px; letter-spacing: .22em; text-transform: uppercase;
+    font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
     color: var(--poster-sage); font-weight: 700; margin: 0 0 6px;
   }
   h1 {
@@ -52,6 +52,20 @@
 
   .how b { font-weight: 700; color: var(--deep-sage); }
   .how .prize { color: var(--terracotta); font-weight: 700; }
+  .board.bonus {
+    margin-top: 8px;
+  }
+  .bonus-label {
+    grid-column: span 3;
+    display: flex; flex-direction: column; justify-content: center; gap: 2px;
+    padding: 6px 8px; color: var(--off-white);
+    font-size: 11px; line-height: 1.3;
+  }
+  .bonus-label b {
+    font-family: "Fraunces", Georgia, serif; font-size: 16px; font-weight: 800;
+    color: var(--off-white);
+  }
+  .bonus-label span { opacity: .85; }
   .status {
     display: flex; justify-content: flex-start; gap: 6px;
     margin: 12px 2px 6px;
@@ -241,11 +255,14 @@
   </header>
 
   <div class="status">
-    <span class="pill"><b id="found">0</b>/25 found</span>
+    <span class="pill"><b id="found">0</b>/<span id="total">27</span> found</span>
     <span class="pill" id="bingoPill"><b id="bingos">0</b> bingo</span>
   </div>
 
   <div class="board" id="board" role="grid" aria-label="Bingo board"></div>
+  <div class="board bonus" id="bonus" aria-label="Bonus boxes">
+    <div class="bonus-label"><b>+2 Bonus</b><span>Not part of a line, but they count toward a full card!</span></div>
+  </div>
 
   <div class="footer">
     <span>✓ Answers save automatically on this device</span>
@@ -282,31 +299,33 @@
    Keep each one short — about one sentence works best.
    ========================================================= */
 const BIOS = [
-  "⚡ Career Insider & Your Singapore Bestie",
-  "Side questing in 🏃 Running & ✈️ Traveling",
-  "Braces & Clear Aligners Specialist",
   "Orthopaedic & Spine Surgeon, Singapore",
-  "Coffee first, then world domination ☕",
-  "Plant mom to 32 babies 🌿",
-  "Chasing sunsets & good playlists",
-  "Dog dad 🐶 | Weekend hiker",
-  "Making pottery that is slightly wonky",
-  "Bookworm with a TBR pile taller than me 📚",
-  "Gym in the morning, dessert at night",
-  "Sneakerhead since 2009 👟",
-  "Living one matcha at a time 🍵",
-  "Karaoke champion (self-proclaimed) 🎤",
-  "Film photos only 📷",
-  "Learning Korean, one drama at a time",
-  "Cat person, don't @ me 🐈",
-  "Building things on the internet 💻",
-  "Thrift store treasure hunter",
-  "Salsa on Fridays 💃",
-  "Will travel for street food 🍜",
-  "Sketching strangers on the MRT",
-  "Morning person (allegedly) ☀️",
-  "Scuba diver, ocean lover 🐠",
-  "Board game night host 🎲",
+  "Career Insider & Your Singapore Bestie",
+  "sharing my culture & life story like it’s Netflix",
+  "Your fav Singapore insider big sister",
+  "Investment Analyst di Singapore",
+  "Kelas Mentoring Persiapan ASEAN Scholarship ke SG",
+  "Orang Indonesi yang kerja di Singapore",
+  "Side questing in 🏃‍♂️ Running & ✈️ Traveling",
+  "Noticing the world around us, and within us",
+  "🎬 Indonesian Actress",
+  "@shelovespartee🏌🏻‍♀️| SG travel tips📕✈️",
+  "Radio DJ @capital958fm 8-11 PM",
+  "Help families get into top China & SG schools",
+  "What Indonesian eats in SG",
+  "Keluarga Indonesia di Singapura",
+  "Functional Health Practitioner. Helping individuals with Autism, ADHD, learning",
+  "Creating relatable, aesthetic content",
+  "Sharing my daily cooking",
+  "Your SG family guide to parenting + education",
+  "Braces & Clear Aligners Specialist",
+  "Sharing all you need to know to survive in Singapore.",
+  "On career pivots and being a good enough Muslim.",
+  "Journeying through life thru entrepreneurship & travel.",
+  "Training communication for managers @solidacademy.co",
+  "Selling homes | ERA Top Achiever",
+  "Running @anya.active | Building @byk.lista",
+  "Help you build your Personal Brand inside out",
 ];
 
 const STORE_KEY = "who-is-this-bingo-v1";
@@ -324,7 +343,7 @@ function load() {
   // Each player gets their own shuffled board, kept the same when they come back.
   const valid = Array.isArray(s.order) && s.order.length === BIOS.length &&
                 s.order.every(b => BIOS.includes(b)) && new Set(s.order).size === BIOS.length;
-  if (!valid) s.order = shuffle(BIOS.slice(0, SIZE * SIZE));
+  if (!valid) s.order = shuffle(BIOS.slice());
   return s;
 }
 function save() {
@@ -339,10 +358,15 @@ function shuffle(a) {
 }
 
 const board = document.getElementById("board");
+const bonus = document.getElementById("bonus");
+const TOTAL = BIOS.length;
+document.getElementById("total").textContent = TOTAL;
 const cells = [];
 
 function build() {
   board.innerHTML = "";
+  bonus.querySelectorAll(".cell").forEach(c => c.remove());
+  bonus.style.display = TOTAL > SIZE * SIZE ? "" : "none";
   cells.length = 0;
   state.order.forEach((bio, i) => {
     const btn = document.createElement("button");
@@ -351,7 +375,7 @@ function build() {
     btn.innerHTML = '<span class="bio"></span><span class="name"></span>';
     btn.querySelector(".bio").textContent = bio;
     btn.addEventListener("click", () => openSheet(i));
-    board.appendChild(btn);
+    (i < SIZE * SIZE ? board : bonus).appendChild(btn);
     cells.push(btn);
   });
   render();
@@ -449,21 +473,25 @@ const celebrate = document.getElementById("celebrate");
 
 function checkBingo() {
   const n = completedLines().length;
-  if (n > state.celebrated) {
+  const full = state.order.every((_, i) => isFilled(i));
+  // A bonus box can be the last one filled, so a full card celebrates on its own.
+  const newFull = full && !state.full;
+  state.full = full;
+  if (n > state.celebrated || newFull) {
     state.celebrated = n;
     save();
     showCelebrate(n);
   } else if (n < state.celebrated) {
     state.celebrated = n; // answer was cleared; allow re-celebrating later
     save();
-  }
+  } else save();
 }
 
 function showCelebrate(n) {
   const found = state.order.filter((_, i) => isFilled(i)).length;
   const title = document.getElementById("celebrateTitle");
   const sub = document.getElementById("celebrateSub");
-  if (found === SIZE * SIZE) {
+  if (found === TOTAL) {
     title.textContent = "FULL CARD! You found everyone 🎉";
     sub.textContent = "Legend. You officially know the whole room.";
   } else if (n === 1) {
@@ -474,7 +502,7 @@ function showCelebrate(n) {
     sub.textContent = "Two lines down. Go meet a few more people!";
   } else {
     title.textContent = n + " BINGOs! You're on a roll";
-    sub.textContent = "Only " + (SIZE * SIZE - found) + " left to fill the whole card. Keep going!";
+    sub.textContent = "Only " + (TOTAL - found) + " left to fill the whole card. Keep going!";
   }
   clearTimeout(hideTimer); clearTimeout(fadeTimer);
   celebrate.classList.remove("show", "hiding"); void celebrate.offsetWidth;
@@ -511,7 +539,7 @@ function confetti() {
 /* ---------- reset ---------- */
 document.getElementById("reset").addEventListener("click", () => {
   if (!confirm("Clear all your answers and start over?")) return;
-  state = { answers: {}, celebrated: 0, order: shuffle(BIOS.slice(0, SIZE * SIZE)) };
+  state = { answers: {}, celebrated: 0, order: shuffle(BIOS.slice()) };
   save();
   build();
 });
