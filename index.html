@@ -20,8 +20,8 @@
   * { box-sizing: border-box; }
   html, body { margin: 0; }
   body {
-    background: var(--deep-sage);
-    color: var(--off-white);
+    background: var(--off-white);
+    color: var(--deep-sage);
     font-family: "DM Sans", system-ui, sans-serif;
     min-height: 100vh;
     -webkit-tap-highlight-color: transparent;
@@ -34,7 +34,7 @@
   header { text-align: center; margin-bottom: 20px; }
   .eyebrow {
     font-size: 12px; letter-spacing: .22em; text-transform: uppercase;
-    color: var(--off-white); opacity: .7; margin: 0 0 6px;
+    color: var(--poster-sage); font-weight: 700; margin: 0 0 6px;
   }
   h1 {
     font-family: "Fraunces", Georgia, serif;
@@ -42,12 +42,12 @@
     font-size: clamp(40px, 11vw, 72px);
     line-height: .95;
     margin: 0;
-    color: var(--off-white);
+    color: var(--deep-sage);
   }
   h1 em { font-style: italic; font-weight: 500; color: var(--terracotta); }
   .how {
     margin: 12px auto 0; max-width: 460px;
-    font-size: 15px; line-height: 1.45; opacity: .85;
+    font-size: 16px; line-height: 1.45; color: var(--brown);
   }
 
   .status {
@@ -55,7 +55,7 @@
     margin: 18px 0 16px;
   }
   .pill {
-    background: var(--poster-sage);
+    background: var(--poster-sage); color: var(--off-white);
     border-radius: 999px; padding: 7px 14px;
     font-size: 14px; font-weight: 500;
   }
@@ -69,12 +69,12 @@
     background: var(--brown);
     padding: 6px;
     border-radius: 14px;
-    box-shadow: 0 14px 40px rgba(0,0,0,.28);
+    box-shadow: 0 14px 34px rgba(73,52,48,.22);
   }
   .cell {
     position: relative;
     aspect-ratio: 1 / 1;
-    background: var(--off-white);
+    background: #fff;
     color: var(--brown);
     border: 0;
     border-radius: 8px;
@@ -124,10 +124,16 @@
 
   .footer {
     display: flex; justify-content: space-between; align-items: center;
-    margin-top: 16px; font-size: 13px; opacity: .75; gap: 12px;
+    margin-top: 16px; font-size: 13px; color: var(--brown); opacity: .8; gap: 12px;
   }
+  .credit {
+    text-align: center; margin-top: 36px;
+    font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 15px;
+    color: var(--terracotta);
+  }
+  .credit a { color: inherit; text-decoration: none; }
   .linkbtn {
-    background: none; border: 0; color: var(--off-white);
+    background: none; border: 0; color: var(--brown);
     font: inherit; text-decoration: underline; cursor: pointer; padding: 4px;
   }
 
@@ -183,13 +189,18 @@
   .celebrate {
     position: fixed; inset: 0; z-index: 30;
     display: none; align-items: center; justify-content: center;
-    background: rgba(47, 74, 58, .96);
+    background: rgba(47, 74, 58, .94);
+    color: var(--off-white);
     padding: 16px;
+    cursor: pointer;
   }
-  .celebrate.show { display: flex; }
+  .celebrate.show { display: flex; animation: fadein .15s ease; }
+  .celebrate.hiding { animation: fadeout .3s ease forwards; }
+  @keyframes fadein { from { opacity: 0; } }
+  @keyframes fadeout { to { opacity: 0; } }
   .card {
     text-align: center; max-width: 420px;
-    animation: zoom .55s cubic-bezier(.2, 1.6, .4, 1);
+    animation: zoom .35s cubic-bezier(.2, 1.6, .4, 1);
   }
   @keyframes zoom { from { transform: scale(.3) rotate(-8deg); opacity: 0; } }
   .letters { display: flex; justify-content: center; gap: 6px; margin-bottom: 18px; }
@@ -200,21 +211,20 @@
     background: var(--terracotta); color: var(--off-white);
     border-radius: 14px;
     display: inline-block;
-    animation: bounce .7s ease both;
+    animation: bounce .4s ease both;
     box-shadow: 0 6px 0 var(--brown);
   }
-  .letters span:nth-child(2) { animation-delay: .07s; background: var(--off-white); color: var(--deep-sage); }
-  .letters span:nth-child(3) { animation-delay: .14s; }
-  .letters span:nth-child(4) { animation-delay: .21s; background: var(--off-white); color: var(--deep-sage); }
-  .letters span:nth-child(5) { animation-delay: .28s; }
+  .letters span:nth-child(2) { animation-delay: .04s; background: var(--off-white); color: var(--deep-sage); }
+  .letters span:nth-child(3) { animation-delay: .08s; }
+  .letters span:nth-child(4) { animation-delay: .12s; background: var(--off-white); color: var(--deep-sage); }
+  .letters span:nth-child(5) { animation-delay: .16s; }
   @keyframes bounce {
     0% { transform: translateY(-60px); opacity: 0; }
     60% { transform: translateY(8px); opacity: 1; }
     100% { transform: translateY(0); }
   }
   .card p { margin: 0 0 6px; font-size: 18px; line-height: 1.4; }
-  .card .sub { opacity: .85; font-size: 15px; margin-bottom: 20px; }
-  .card .btn { background: var(--off-white); color: var(--deep-sage); max-width: 260px; }
+  .card .sub { opacity: .85; font-size: 15px; }
   .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 31; overflow: hidden; }
   .confetti i {
     position: absolute; top: -20px; width: 10px; height: 14px; border-radius: 2px;
@@ -230,9 +240,9 @@
 <body>
 <div class="wrap">
   <header>
-    <p class="eyebrow">Icebreaker Bingo</p>
+    <p class="eyebrow">Indonesian Creators in Singapore</p>
     <h1>Who is <em>this?</em></h1>
-    <p class="how">Each box is someone's Instagram bio. Go around the room, find the person, and write their name in. Get 5 in a row or column for BINGO!</p>
+    <p class="how">Each box is someone's IG bio. Find them!</p>
   </header>
 
   <div class="status">
@@ -246,6 +256,7 @@
     <span>✓ Answers save automatically on this device</span>
     <button class="linkbtn" id="reset">Clear board</button>
   </div>
+  <p class="credit"><a href="https://instagram.com/hey.mickmok" target="_blank" rel="noopener">@hey.mickmok</a> 2026</p>
 </div>
 
 <div class="scrim" id="scrim">
@@ -266,7 +277,6 @@
     <div class="letters"><span>B</span><span>I</span><span>N</span><span>G</span><span>O</span></div>
     <p id="celebrateTitle">You got a BINGO!</p>
     <p class="sub" id="celebrateSub">Keep going — can you get another line?</p>
-    <button class="btn" id="keepGoing">Keep going →</button>
   </div>
 </div>
 <div class="confetti" id="confetti"></div>
@@ -277,6 +287,7 @@
    Keep each one short — about one sentence works best.
    ========================================================= */
 const BIOS = [
+  "⚡ Career Insider & Your Singapore Bestie",
   "Coffee first, then world domination ☕",
   "Plant mom to 32 babies 🌿",
   "Chasing sunsets & good playlists",
@@ -301,7 +312,6 @@ const BIOS = [
   "Morning person (allegedly) ☀️",
   "Scuba diver, ocean lover 🐠",
   "Board game night host 🎲",
-  "Mum of two, coffee of three",
 ];
 
 const STORE_KEY = "who-is-this-bingo-v1";
@@ -471,15 +481,21 @@ function showCelebrate(n) {
     title.textContent = n + " BINGOs! You're on a roll";
     sub.textContent = "Only " + (SIZE * SIZE - found) + " left to fill the whole card. Keep going!";
   }
-  celebrate.classList.remove("show"); void celebrate.offsetWidth;
+  clearTimeout(hideTimer); clearTimeout(fadeTimer);
+  celebrate.classList.remove("show", "hiding"); void celebrate.offsetWidth;
   celebrate.classList.add("show");
   confetti();
   if (navigator.vibrate) navigator.vibrate([60, 40, 120]);
-  setTimeout(() => document.getElementById("keepGoing").focus(), 100);
+  hideTimer = setTimeout(hideCelebrate, 2700); // gone by 3s, no tap needed
 }
-function hideCelebrate() { celebrate.classList.remove("show"); }
-document.getElementById("keepGoing").addEventListener("click", hideCelebrate);
-celebrate.addEventListener("click", e => { if (e.target === celebrate) hideCelebrate(); });
+let hideTimer, fadeTimer;
+function hideCelebrate() {
+  if (!celebrate.classList.contains("show")) return;
+  clearTimeout(hideTimer);
+  celebrate.classList.add("hiding");
+  fadeTimer = setTimeout(() => celebrate.classList.remove("show", "hiding"), 300);
+}
+celebrate.addEventListener("click", hideCelebrate);
 
 function confetti() {
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -489,11 +505,11 @@ function confetti() {
     const p = document.createElement("i");
     p.style.left = Math.random() * 100 + "vw";
     p.style.background = colors[k % colors.length];
-    p.style.animationDuration = 1.8 + Math.random() * 1.6 + "s";
-    p.style.animationDelay = Math.random() * 0.5 + "s";
+    p.style.animationDuration = 1.4 + Math.random() * 1.2 + "s";
+    p.style.animationDelay = Math.random() * 0.3 + "s";
     p.style.transform = "rotate(" + Math.random() * 360 + "deg)";
     box.appendChild(p);
-    setTimeout(() => p.remove(), 4200);
+    setTimeout(() => p.remove(), 3000);
   }
 }
 
