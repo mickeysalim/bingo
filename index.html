@@ -47,20 +47,17 @@
   h1 em { font-style: italic; font-weight: 500; color: var(--terracotta); }
   .how {
     margin: 6px auto 0; max-width: 460px;
-    font-size: 14px; line-height: 1.4; color: var(--brown);
+    font-size: 12px; line-height: 1.4; color: var(--brown); opacity: .85;
   }
 
   .status {
-    display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;
-    margin: 10px 0 10px;
+    display: flex; justify-content: flex-start; gap: 6px;
+    margin: 12px 2px 6px;
+    font-size: 12px; color: var(--brown);
   }
-  .pill {
-    background: var(--poster-sage); color: var(--off-white);
-    border-radius: 999px; padding: 7px 14px;
-    font-size: 14px; font-weight: 500;
-  }
+  .pill + .pill::before { content: "·"; margin-right: 6px; opacity: .6; }
   .pill b { font-weight: 700; }
-  .pill.bingo { background: var(--terracotta); }
+  .pill.bingo { color: var(--terracotta); font-weight: 700; }
 
   .board {
     display: grid;
