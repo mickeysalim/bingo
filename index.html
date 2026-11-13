@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Who is this? Bingo</title>
+<meta name="theme-color" content="#2F4A3A">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,800;1,9..144,500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --deep-sage: #2F4A3A;
+    --poster-sage: #4C6A51;
+    --off-white: #F2EEEA;
+    --terracotta: #C4622D;
+    --brown: #493430;
+    --line: rgba(73, 52, 48, 0.18);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--deep-sage);
+    color: var(--off-white);
+    font-family: "DM Sans", system-ui, sans-serif;
+    min-height: 100vh;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 28px 16px 48px;
+  }
+  header { text-align: center; margin-bottom: 20px; }
+  .eyebrow {
+    font-size: 12px; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--off-white); opacity: .7; margin: 0 0 6px;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 800;
+    font-size: clamp(40px, 11vw, 72px);
+    line-height: .95;
+    margin: 0;
+    color: var(--off-white);
+  }
+  h1 em { font-style: italic; font-weight: 500; color: var(--terracotta); }
+  .how {
+    margin: 12px auto 0; max-width: 460px;
+    font-size: 15px; line-height: 1.45; opacity: .85;
+  }
+
+  .status {
+    display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;
+    margin: 18px 0 16px;
+  }
+  .pill {
+    background: var(--poster-sage);
+    border-radius: 999px; padding: 7px 14px;
+    font-size: 14px; font-weight: 500;
+  }
+  .pill b { font-weight: 700; }
+  .pill.bingo { background: var(--terracotta); }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    background: var(--brown);
+    padding: 6px;
+    border-radius: 14px;
+    box-shadow: 0 14px 40px rgba(0,0,0,.28);
+  }
+  .cell {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    background: var(--off-white);
+    color: var(--brown);
+    border: 0;
+    border-radius: 8px;
+    padding: 6px;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    display: flex; flex-direction: column; justify-content: space-between;
+    overflow: hidden;
+    transition: transform .12s ease, background .2s ease;
+  }
+  .cell:active { transform: scale(.96); }
+  .cell:focus-visible { outline: 3px solid var(--terracotta); outline-offset: 2px; }
+  .bio {
+    font-size: clamp(9px, 2.1vw, 13px);
+    line-height: 1.25;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+  .name {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(10px, 2.5vw, 15px);
+    line-height: 1.1;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .cell .name:empty::before {
+    content: "+ who?";
+    font-family: "DM Sans", system-ui, sans-serif;
+    font-weight: 500; font-size: clamp(9px, 2vw, 12px);
+    color: var(--poster-sage); opacity: .8;
+  }
+  .cell.filled { background: var(--poster-sage); color: var(--off-white); }
+  .cell.filled .bio { opacity: .7; }
+  @media (min-width: 560px) { .bio { -webkit-line-clamp: 4; } }
+  .cell.in-line { background: var(--terracotta); }
+  .cell.pop { animation: pop .5s ease; }
+  @keyframes pop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.08) rotate(-2deg); }
+    100% { transform: scale(1); }
+  }
+
+  .footer {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 16px; font-size: 13px; opacity: .75; gap: 12px;
+  }
+  .linkbtn {
+    background: none; border: 0; color: var(--off-white);
+    font: inherit; text-decoration: underline; cursor: pointer; padding: 4px;
+  }
+
+  /* Answer sheet */
+  .scrim {
+    position: fixed; inset: 0; background: rgba(20, 30, 24, .6);
+    display: none; align-items: flex-end; justify-content: center;
+    z-index: 20;
+  }
+  .scrim.open { display: flex; }
+  @media (min-width: 600px) { .scrim { align-items: center; } }
+  .sheet {
+    background: var(--off-white); color: var(--brown);
+    width: 100%; max-width: 480px;
+    border-radius: 20px 20px 0 0;
+    padding: 22px 20px calc(22px + env(safe-area-inset-bottom));
+    animation: up .22s ease;
+  }
+  @media (min-width: 600px) { .sheet { border-radius: 20px; } }
+  @keyframes up { from { transform: translateY(30px); opacity: 0; } }
+  .sheet .label {
+    font-size: 12px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--poster-sage); font-weight: 700; margin: 0 0 8px;
+  }
+  .sheet blockquote {
+    margin: 0 0 18px;
+    font-family: "Fraunces", Georgia, serif;
+    font-style: italic; font-weight: 500;
+    font-size: 20px; line-height: 1.35;
+    border-left: 4px solid var(--terracotta);
+    padding-left: 12px;
+    word-break: break-word;
+  }
+  .sheet input {
+    width: 100%;
+    font: inherit; font-size: 18px;
+    padding: 13px 14px;
+    border: 2px solid var(--line);
+    border-radius: 12px;
+    background: #fff; color: var(--brown);
+  }
+  .sheet input:focus { outline: none; border-color: var(--poster-sage); }
+  .sheet .saved { font-size: 13px; color: var(--poster-sage); height: 18px; margin: 6px 2px 0; }
+  .actions { display: flex; gap: 10px; margin-top: 12px; }
+  .btn {
+    flex: 1; border: 0; border-radius: 12px;
+    padding: 14px; font: inherit; font-weight: 700; font-size: 16px; cursor: pointer;
+  }
+  .btn.primary { background: var(--deep-sage); color: var(--off-white); }
+  .btn.ghost { background: transparent; color: var(--brown); border: 2px solid var(--line); flex: 0 0 auto; padding: 14px 18px; }
+
+  /* BINGO celebration */
+  .celebrate {
+    position: fixed; inset: 0; z-index: 30;
+    display: none; align-items: center; justify-content: center;
+    background: rgba(47, 74, 58, .96);
+    padding: 16px;
+  }
+  .celebrate.show { display: flex; }
+  .card {
+    text-align: center; max-width: 420px;
+    animation: zoom .55s cubic-bezier(.2, 1.6, .4, 1);
+  }
+  @keyframes zoom { from { transform: scale(.3) rotate(-8deg); opacity: 0; } }
+  .letters { display: flex; justify-content: center; gap: 6px; margin-bottom: 18px; }
+  .letters span {
+    font-family: "Fraunces", Georgia, serif; font-weight: 800;
+    font-size: clamp(44px, 14vw, 76px);
+    width: 1.25em; height: 1.25em; line-height: 1.25em;
+    background: var(--terracotta); color: var(--off-white);
+    border-radius: 14px;
+    display: inline-block;
+    animation: bounce .7s ease both;
+    box-shadow: 0 6px 0 var(--brown);
+  }
+  .letters span:nth-child(2) { animation-delay: .07s; background: var(--off-white); color: var(--deep-sage); }
+  .letters span:nth-child(3) { animation-delay: .14s; }
+  .letters span:nth-child(4) { animation-delay: .21s; background: var(--off-white); color: var(--deep-sage); }
+  .letters span:nth-child(5) { animation-delay: .28s; }
+  @keyframes bounce {
+    0% { transform: translateY(-60px); opacity: 0; }
+    60% { transform: translateY(8px); opacity: 1; }
+    100% { transform: translateY(0); }
+  }
+  .card p { margin: 0 0 6px; font-size: 18px; line-height: 1.4; }
+  .card .sub { opacity: .85; font-size: 15px; margin-bottom: 20px; }
+  .card .btn { background: var(--off-white); color: var(--deep-sage); max-width: 260px; }
+  .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 31; overflow: hidden; }
+  .confetti i {
+    position: absolute; top: -20px; width: 10px; height: 14px; border-radius: 2px;
+    animation: fall linear forwards;
+  }
+  @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Icebreaker Bingo</p>
+    <h1>Who is <em>this?</em></h1>
+    <p class="how">Each box is someone's Instagram bio. Go around the room, find the person, and write their name in. Get 5 in a row or column for BINGO!</p>
+  </header>
+
+  <div class="status">
+    <span class="pill"><b id="found">0</b>/25 found</span>
+    <span class="pill" id="bingoPill"><b id="bingos">0</b> bingo</span>
+  </div>
+
+  <div class="board" id="board" role="grid" aria-label="Bingo board"></div>
+
+  <div class="footer">
+    <span>✓ Answers save automatically on this device</span>
+    <button class="linkbtn" id="reset">Clear board</button>
+  </div>
+</div>
+
+<div class="scrim" id="scrim">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetLabel">
+    <p class="label" id="sheetLabel">Whose bio is this?</p>
+    <blockquote id="sheetBio"></blockquote>
+    <input id="nameInput" type="text" maxlength="40" placeholder="Type their name" autocomplete="off" autocapitalize="words" enterkeyhint="done">
+    <p class="saved" id="savedNote"></p>
+    <div class="actions">
+      <button class="btn ghost" id="clearOne">Clear</button>
+      <button class="btn primary" id="done">Done</button>
+    </div>
+  </div>
+</div>
+
+<div class="celebrate" id="celebrate">
+  <div class="card">
+    <div class="letters"><span>B</span><span>I</span><span>N</span><span>G</span><span>O</span></div>
+    <p id="celebrateTitle">You got a BINGO!</p>
+    <p class="sub" id="celebrateSub">Keep going — can you get another line?</p>
+    <button class="btn" id="keepGoing">Keep going →</button>
+  </div>
+</div>
+<div class="confetti" id="confetti"></div>
+
+<script>
+/* =========================================================
+   ✏️ EDIT HERE: put 25 Instagram bios below (one per box).
+   Keep each one short — about one sentence works best.
+   ========================================================= */
+const BIOS = [
+  "Coffee first, then world domination ☕",
+  "Plant mom to 32 babies 🌿",
+  "Chasing sunsets & good playlists",
+  "Professional overthinker, amateur chef",
+  "Dog dad 🐶 | Weekend hiker",
+  "Currently on flight #47 this year ✈️",
+  "Making pottery that is slightly wonky",
+  "Bookworm with a TBR pile taller than me 📚",
+  "Gym in the morning, dessert at night",
+  "Sneakerhead since 2009 👟",
+  "Living one matcha at a time 🍵",
+  "Karaoke champion (self-proclaimed) 🎤",
+  "Film photos only 📷",
+  "Learning Korean, one drama at a time",
+  "Marathon finisher x3 🏃",
+  "Cat person, don't @ me 🐈",
+  "Building things on the internet 💻",
+  "Thrift store treasure hunter",
+  "Salsa on Fridays 💃",
+  "Will travel for street food 🍜",
+  "Sketching strangers on the MRT",
+  "Morning person (allegedly) ☀️",
+  "Scuba diver, ocean lover 🐠",
+  "Board game night host 🎲",
+  "Mum of two, coffee of three",
+];
+
+const STORE_KEY = "who-is-this-bingo-v1";
+const SIZE = 5;
+
+let state = load();
+let openIndex = null;
+
+function load() {
+  let s = null;
+  try { s = JSON.parse(localStorage.getItem(STORE_KEY)); } catch (e) {}
+  if (!s || typeof s !== "object") s = {};
+  s.answers = s.answers && typeof s.answers === "object" ? s.answers : {};
+  s.celebrated = Number(s.celebrated) || 0;
+  // Each player gets their own shuffled board, kept the same when they come back.
+  const valid = Array.isArray(s.order) && s.order.length === BIOS.length &&
+                s.order.every(b => BIOS.includes(b)) && new Set(s.order).size === BIOS.length;
+  if (!valid) s.order = shuffle(BIOS.slice(0, SIZE * SIZE));
+  return s;
+}
+function save() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+}
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const board = document.getElementById("board");
+const cells = [];
+
+function build() {
+  board.innerHTML = "";
+  cells.length = 0;
+  state.order.forEach((bio, i) => {
+    const btn = document.createElement("button");
+    btn.className = "cell";
+    btn.type = "button";
+    btn.innerHTML = '<span class="bio"></span><span class="name"></span>';
+    btn.querySelector(".bio").textContent = bio;
+    btn.addEventListener("click", () => openSheet(i));
+    board.appendChild(btn);
+    cells.push(btn);
+  });
+  render();
+}
+
+function isFilled(i) {
+  return !!(state.answers[state.order[i]] || "").trim();
+}
+
+function completedLines() {
+  const lines = [];
+  for (let r = 0; r < SIZE; r++) {
+    const idx = [...Array(SIZE)].map((_, c) => r * SIZE + c);
+    if (idx.every(isFilled)) lines.push(idx);
+  }
+  for (let c = 0; c < SIZE; c++) {
+    const idx = [...Array(SIZE)].map((_, r) => r * SIZE + c);
+    if (idx.every(isFilled)) lines.push(idx);
+  }
+  return lines;
+}
+
+function render() {
+  const lines = completedLines();
+  const inLine = new Set(lines.flat());
+  let found = 0;
+  cells.forEach((cell, i) => {
+    const name = (state.answers[state.order[i]] || "").trim();
+    if (name) found++;
+    cell.querySelector(".name").textContent = name;
+    cell.classList.toggle("filled", !!name);
+    cell.classList.toggle("in-line", inLine.has(i));
+    cell.setAttribute("aria-label", state.order[i] + (name ? ". Answer: " + name : ". Not answered yet"));
+  });
+  document.getElementById("found").textContent = found;
+  document.getElementById("bingos").textContent = lines.length;
+  document.getElementById("bingoPill").lastChild.textContent = lines.length === 1 ? " bingo" : " bingos";
+  document.getElementById("bingoPill").classList.toggle("bingo", lines.length > 0);
+  return lines;
+}
+
+/* ---------- answer sheet ---------- */
+const scrim = document.getElementById("scrim");
+const nameInput = document.getElementById("nameInput");
+const savedNote = document.getElementById("savedNote");
+let saveTimer;
+
+function openSheet(i) {
+  openIndex = i;
+  document.getElementById("sheetBio").textContent = "“" + state.order[i] + "”";
+  nameInput.value = state.answers[state.order[i]] || "";
+  savedNote.textContent = "";
+  scrim.classList.add("open");
+  setTimeout(() => nameInput.focus(), 50);
+}
+function closeSheet() {
+  if (openIndex === null) return;
+  commit();
+  const i = openIndex;
+  openIndex = null;
+  scrim.classList.remove("open");
+  nameInput.blur();
+  if (isFilled(i)) {
+    cells[i].classList.remove("pop"); void cells[i].offsetWidth; cells[i].classList.add("pop");
+  }
+  checkBingo();
+}
+function commit() {
+  if (openIndex === null) return;
+  const v = nameInput.value.trim();
+  const key = state.order[openIndex];
+  if (v) state.answers[key] = v; else delete state.answers[key];
+  save();
+  render();
+}
+
+nameInput.addEventListener("input", () => {
+  commit(); // auto-save every keystroke
+  clearTimeout(saveTimer);
+  savedNote.textContent = "Saved ✓";
+  saveTimer = setTimeout(() => (savedNote.textContent = ""), 1200);
+});
+nameInput.addEventListener("keydown", e => { if (e.key === "Enter") closeSheet(); });
+document.getElementById("done").addEventListener("click", closeSheet);
+document.getElementById("clearOne").addEventListener("click", () => {
+  nameInput.value = ""; commit(); nameInput.focus();
+});
+scrim.addEventListener("click", e => { if (e.target === scrim) closeSheet(); });
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") { if (openIndex !== null) closeSheet(); else hideCelebrate(); }
+});
+
+/* ---------- BINGO! ---------- */
+const celebrate = document.getElementById("celebrate");
+
+function checkBingo() {
+  const n = completedLines().length;
+  if (n > state.celebrated) {
+    state.celebrated = n;
+    save();
+    showCelebrate(n);
+  } else if (n < state.celebrated) {
+    state.celebrated = n; // answer was cleared; allow re-celebrating later
+    save();
+  }
+}
+
+function showCelebrate(n) {
+  const found = state.order.filter((_, i) => isFilled(i)).length;
+  const title = document.getElementById("celebrateTitle");
+  const sub = document.getElementById("celebrateSub");
+  if (found === SIZE * SIZE) {
+    title.textContent = "FULL CARD! You found everyone 🎉";
+    sub.textContent = "Legend. You officially know the whole room.";
+  } else if (n === 1) {
+    title.textContent = "You got your first BINGO!";
+    sub.textContent = "Nice! Don't stop now — can you get a second line?";
+  } else if (n === 2) {
+    title.textContent = "Double BINGO! 🔥";
+    sub.textContent = "Two lines down. Go meet a few more people!";
+  } else {
+    title.textContent = n + " BINGOs! You're on a roll";
+    sub.textContent = "Only " + (SIZE * SIZE - found) + " left to fill the whole card. Keep going!";
+  }
+  celebrate.classList.remove("show"); void celebrate.offsetWidth;
+  celebrate.classList.add("show");
+  confetti();
+  if (navigator.vibrate) navigator.vibrate([60, 40, 120]);
+  setTimeout(() => document.getElementById("keepGoing").focus(), 100);
+}
+function hideCelebrate() { celebrate.classList.remove("show"); }
+document.getElementById("keepGoing").addEventListener("click", hideCelebrate);
+celebrate.addEventListener("click", e => { if (e.target === celebrate) hideCelebrate(); });
+
+function confetti() {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const box = document.getElementById("confetti");
+  const colors = ["#C4622D", "#F2EEEA", "#4C6A51", "#493430"];
+  for (let k = 0; k < 90; k++) {
+    const p = document.createElement("i");
+    p.style.left = Math.random() * 100 + "vw";
+    p.style.background = colors[k % colors.length];
+    p.style.animationDuration = 1.8 + Math.random() * 1.6 + "s";
+    p.style.animationDelay = Math.random() * 0.5 + "s";
+    p.style.transform = "rotate(" + Math.random() * 360 + "deg)";
+    box.appendChild(p);
+    setTimeout(() => p.remove(), 4200);
+  }
+}
+
+/* ---------- reset ---------- */
+document.getElementById("reset").addEventListener("click", () => {
+  if (!confirm("Clear all your answers and start over?")) return;
+  state = { answers: {}, celebrated: 0, order: shuffle(BIOS.slice(0, SIZE * SIZE)) };
+  save();
+  build();
+});
+
+build();
+</script>
+</body>
+</html>
